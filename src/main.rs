@@ -1,5 +1,7 @@
-mod day_01;
+mod day_01 {
+    pub mod part_01;
+}
 
 fn main() {
-    print!("{}", day_01::calibration_sum("./src/day_01/input.txt"));
+    // dbg!(day_01::part_01::calibration_sum("./src/day_01/input.txt"));
 }

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 const ASCII_RANGE: std::ops::RangeInclusive<u8> = 49..=57;
 const ASCII_NUMBER_OFFSET: u8 = 48;
 const NEW_LINE: u8 = 10;
