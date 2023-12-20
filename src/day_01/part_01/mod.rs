@@ -31,7 +31,7 @@ fn parse_letter(letter: u8, calibration_sum: &mut u32, last_number: &mut (u8, u8
     };
 }
 
-pub fn calibration_sum(path: &str) -> u32 {
+pub fn solution(path: &str) -> u32 {
     let file_contents: Vec<u8> = std::fs::read(path).expect("ERROR: invalid path");
 
     let mut calibration_sum: u32 = 0;
