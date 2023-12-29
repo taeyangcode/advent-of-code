@@ -1,6 +1,6 @@
 pub struct Solution;
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 struct CubeSet {
     red: usize,
     green: usize,
