@@ -1,60 +1,61 @@
-use std::ops::RangeInclusive;
+pub struct Solution;
 
 #[derive(Default, Debug)]
-struct GameSet {
+struct CubeSet {
     red: usize,
-    blue: usize,
     green: usize,
+    blue: usize,
 }
 
-fn parse_file_contents(file_contents: String) -> Vec<Vec<GameSet>> {
-    const ASCII_NUMBER_RANGE: RangeInclusive<u8> = 47..=57;
-
-    let mut game_data: Vec<Vec<GameSet>> = vec![];
-    let mut start_index: usize = 0;
-    for (index, current_character) in file_contents.as_bytes().iter().enumerate() {
-        match current_character {
-            _ if ASCII_NUMBER_RANGE.contains(current_character) => if start_index == 0 { start_index = index; },
-            b'r' => {
-                if file_contents.as_bytes()[index - 1] != b' ' { continue; }
-                game_data.last_mut().unwrap().last_mut().unwrap().red += file_contents[start_index..(index - 1)].parse::<usize>().unwrap();
-                start_index = 0;
-            }
-            b'g' => {
-                if file_contents.as_bytes()[index - 1] != b' ' { continue; }
-                game_data.last_mut().unwrap().last_mut().unwrap().green += file_contents[start_index..(index - 1)].parse::<usize>().unwrap();
-                start_index = 0;
-            }
-            b'b' => {
-                if file_contents.as_bytes()[index - 1] != b' ' { continue; }
-                game_data.last_mut().unwrap().last_mut().unwrap().blue += file_contents[start_index..(index - 1)].parse::<usize>().unwrap();
-                start_index = 0;
-            }
-            b':' => {
-                game_data.push(Vec::from([GameSet::default()]));
-                start_index = 0;
-            },
-            b';' => game_data.last_mut().unwrap().push(GameSet::default()),
-            _ => {},
-        }
-    }
-
-    return game_data;
-}
-
-fn valid_id_sum(game_data: Vec<Vec<GameSet>>, (red_max, green_max, blue_max): (usize, usize, usize)) -> usize {
-    game_data
+fn parse_line(line: Vec<&str>) -> Vec<CubeSet> {
+    line
+        .iter()
+        .zip(line.iter().skip(1))
         .into_iter()
-        .enumerate()
-        .fold(0, |accumulator, (index, gamesets)| {
-            if gamesets.iter().all(|GameSet { red, blue, green}| red <= &red_max && green <= &green_max && blue <= &blue_max) {
-                return accumulator + index + 1;
+        .fold(Vec::<CubeSet>::new(), |mut cube_sets, (previous_word, current_word)| {
+            if current_word.ends_with(':') { 
+                cube_sets.push(CubeSet::default());
+                return cube_sets;
             }
-            accumulator
+
+            let current_set: &mut CubeSet = cube_sets.last_mut().unwrap();
+            match current_word {
+                _ if current_word.starts_with("red") => current_set.red += previous_word.parse::<usize>().unwrap(),
+                _ if current_word.starts_with("green") => current_set.green += previous_word.parse::<usize>().unwrap(),
+                _ if current_word.starts_with("blue") => current_set.blue += previous_word.parse::<usize>().unwrap(),
+                _ => {},
+            }
+            if current_word.ends_with(';') {
+                cube_sets.push(CubeSet::default());
+            }
+            cube_sets
         })
 }
 
-pub fn solution(file_path: &'static str) -> u32 {
-    let input_contents: String = std::fs::read_to_string(file_path).expect("ERROR: opening input file");
-    return valid_id_sum(parse_file_contents(input_contents), (12, 13, 14)) as u32;
+fn parse_input_file(file_path: &'static str) -> Vec<Vec<CubeSet>> {
+    std::fs::read_to_string(file_path)
+        .expect("ERROR: invalid file path")
+        .lines()
+        .map(|line: &str| parse_line(line.split_whitespace().collect()))
+        .collect()
+}
+
+fn sum_possible_games(games: Vec<Vec<CubeSet>>, cube_configuration: CubeSet) -> usize {
+    games
+        .into_iter()
+        .enumerate()
+        .fold(0, |sum, (index, cube_sets)| -> usize {
+            match cube_sets.into_iter().all(|CubeSet { red, green, blue }| red <= cube_configuration.red && green <= cube_configuration.green && blue <= cube_configuration.blue) {
+                true => sum + index + 1,
+                false => sum,
+            }
+        })
+}
+
+impl crate::Solution<usize> for Solution {
+    fn solution() -> usize {
+        let cube_games: Vec<Vec<CubeSet>> = parse_input_file("./src/day_02/input.txt"); 
+        let cube_configuration: CubeSet = CubeSet { red: 12, green: 13, blue: 14 };
+        return sum_possible_games(cube_games, cube_configuration);
+    }
 }
